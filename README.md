@@ -6,14 +6,12 @@ strategy built on the deviation between the two.
 
 ## Why this project
 
-Commodity futures curves aren't just a term structure of prices — they're a
-running readout of physical scarcity. Storage economics (tankage cost,
-convenience yield, stockout risk) determine whether the curve trades in
+Commodity futures curves aren't just a term structure of prices nut rather a
+running readout of physical scarcity. Storage economics determine whether the curve trades in
 contango or backwardation, in the same way that financing and expectations
 determine the shape of a yield curve. This project treats the WTI curve the
 way a rates desk treats a yield curve: strip out the carry, regress the
-residual against the physical driver (in this case, EIA storage data), and
-trade the mean-reversion in that residual.
+residual against the physical driver and trade the mean-reversion in that residual.
 
 ## Methodology
 
@@ -49,7 +47,7 @@ performance metrics (Sharpe, max drawdown, hit rate).
 ## Known simplifications (stated up front, not hidden)
 
 - Risk-free rate and storage cost rate are held constant rather than pulled
-  from a live curve — swap in SOFR and regional tankage rates for a more
+  from a live curve swap in SOFR and regional tankage rates for a more
   rigorous version.
 - The shortest-dated contract is used as a spot proxy rather than an actual
   Cushing spot feed.
@@ -66,9 +64,6 @@ performance metrics (Sharpe, max drawdown, hit rate).
   storage/convenience-yield relationship -- the pipeline itself prints a
   warning if fewer than 30 observations survive the fetch + merge step.
 
-These are exactly the kind of assumptions worth being upfront about in an
-interview — the honest list of "here's what I simplified and why" is more
-credible than a project that pretends to be production-grade.
 
 ## Project structure
 
@@ -98,9 +93,6 @@ ground truth (e.g. the storage regression is checked against a synthetic
 dataset with a known negative slope), so correctness doesn't depend on
 market data being available or well-behaved:
 
-```bash
-pytest tests/ -v
-```
 
 ## Results
 
@@ -110,10 +102,9 @@ merging with EIA weekly crude storage data.
 
 **Storage regression — the core empirical finding:**
 
-| Metric | Value |
-|---|---|
-| R² | 0.522 |
-| n observations | 305 |
+
+ R² = 0.522 
+ n observations = 305 
 
 Storage levels explain roughly 52% of the variation in implied convenience
 yield over this window — a real, statistically meaningful confirmation of
@@ -123,17 +114,11 @@ rather than a synthetic sanity check.
 
 **Backtest — the calendar-spread signal built on top of it:**
 
-| Metric | Value |
-|---|---|
-| Annualized return | 4.2% |
-| Annualized volatility | 19.3% |
-| Sharpe ratio | 0.22 |
-| Max drawdown | -37.1% |
-| Number of trades | 29 |
-| Hit rate | 48.3% |
-| Total trading days | 304 |
+Annualized return = 4.2%. Annualized volatility = 19.3%. Sharpe ratio = 0.22. Max drawdown = -37.1%. Number of trades = 29. Hit rate = 48.3%. Total trading days = 304
 
-**Honest interpretation:** the economic relationship in the regression is
+
+
+**  conclusion :** the economic relationship in the regression is
 real and well-supported. The simple rolling z-score mean-reversion signal
 built on top of it is not, by itself, a strategy with a demonstrated edge —
 a Sharpe of 0.22 and a hit rate near 50% indicate the entry/exit thresholds
@@ -142,10 +127,9 @@ rather than fit to data) aren't yet extracting a tradeable signal from the
 mispricing series, and the -37% drawdown suggests a single adverse stretch
 dominates the P&L path.
 
-That gap — a statistically supported economic relationship that doesn't
-automatically translate into a profitable signal — is the actual finding of
-this project, and a more credible one than an unrealistically clean backtest
-would be. The next section outlines concrete ways to close that gap.
+The gap that a statistically supported economic relationship that doesn't
+automatically translate into a profitable signal is the actual finding of
+this project. The next section outlines concrete ways to close that gap.
 
 ![Cumulative P&L](results/cumulative_pnl.png)
 
@@ -170,6 +154,5 @@ and "the strategy has edge" (see Results above):
 4. **Extend to natural gas (Henry Hub).** Seasonality and storage-report
    reactions are sharper there than in crude — a second commodity showing
    the same pipeline works is stronger evidence the approach generalizes,
-   rather than having found something crude-specific (or a fluke).
-5. **Proper OU (Ornstein-Uhlenbeck) fit for the mean-reversion, with
-   half-life-based position sizing**, instead of a fixed z-score band.
+   rather than having found something crude-specific.
+
