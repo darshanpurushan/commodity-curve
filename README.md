@@ -133,6 +133,12 @@ this project. The next section outlines concrete ways to close that gap.
 
 ![Cumulative P&L](results/cumulative_pnl.png)
 
+**Train/test validation of the tuned thresholds:**
+
+Split the data chronologically: first 70% as train (June 2025 to April 2026, 213 rows), last 30% as test (April 2026 to August 2026, 92 rows). Grid search on train only found the best config at lookback=13, entry_z=1.5, exit_z=0.5, giving a train Sharpe of 0.38. Applying that same config unchanged to the test period gave a Sharpe of 0.62, annualized return of 8.6%, max drawdown of -14.5%, over 14 trades.
+
+The test Sharpe held up better than train, which is the opposite of what overfitting usually looks like. Worth noting the test period is small (92 rows, 14 trades), so this isn't proof the strategy is robust across all conditions — just a reasonable sign the tuned thresholds aren't purely an artifact of the exact data they were chosen on.
+
 ## Extensions worth pursuing next
 
 Concrete, prioritized ways to close the gap between "the regression works"
