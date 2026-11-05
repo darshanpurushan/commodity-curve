@@ -44,7 +44,10 @@ def merge_curve_and_storage(
         # Exclude the spot-proxy contract itself (months_to_expiry == 0) so we
         # don't compute a "convenience yield" from comparing spot to spot.
         df = df[df["months_to_expiry"] > 0]
-        df = df.sort_values(["date", "months_to_expiry"]).groupby("date").first().reset_index()
+        # Keep an actual front-contract row, including its missing values.
+        # groupby.first() selects each column's first non-null value and
+        # can silently splice another maturity's yield into this row.
+        df = df.sort_values(["date", "months_to_expiry"]).drop_duplicates("date", keep="first")
 
     storage_sorted = storage_df.sort_values("date")
     merged = pd.merge_asof(
