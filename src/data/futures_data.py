@@ -14,6 +14,7 @@ from __future__ import annotations
 import datetime as dt
 from dataclasses import dataclass
 
+import numpy as np
 import pandas as pd
 
 # NYMEX month codes
@@ -173,9 +174,13 @@ def fetch_fixed_pair_history(
     far_hist.index = pd.to_datetime(far_hist.index.date)
 
     merged = near_hist.join(far_hist, how="inner").reset_index().rename(columns={"index": "date"})
+    # An index overlap is insufficient when either contract lacks a valid
+    # quote. Retain only paired finite prices, without filling missing data.
+    valid_quotes = np.isfinite(merged[["near_price", "far_price"]]).all(axis=1)
+    merged = merged.loc[valid_quotes].reset_index(drop=True)
     if merged.empty:
         raise RuntimeError(
-            "No overlapping dates between near and far contract histories. "
+            "No overlapping dates with valid quotes between near and far contract histories. "
             "Check that both tickers have data over the requested range."
         )
 
