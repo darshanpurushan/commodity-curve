@@ -33,7 +33,7 @@ import pandas as pd
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from scripts.tune_thresholds import (
-    prepare_data, LOOKBACKS, ENTRY_ZS, EXIT_ZS,
+    prepare_data, LOOKBACKS, ENTRY_ZS, EXIT_ZS, rank_grid_results,
 )
 from src.strategy.signals import generate_zscore_signal
 from src.backtest.engine import backtest_calendar_spread, performance_summary
@@ -59,7 +59,7 @@ def run_grid(data: pd.DataFrame) -> pd.DataFrame:
             "max_drawdown": summary["max_drawdown"],
             "n_trades": summary["n_trades"],
         })
-    return pd.DataFrame(results).sort_values("sharpe_ratio", ascending=False)
+    return rank_grid_results(results)
 
 
 def run_single_config(data: pd.DataFrame, lookback: int, entry_z: float, exit_z: float) -> dict:
@@ -82,6 +82,9 @@ def main():
 
     print("\nRunning grid search on TRAIN period only...")
     train_results = run_grid(train)
+    if train_results.empty:
+        print("No eligible training configurations with a defined Sharpe ratio; test evaluation skipped.")
+        return
     best = train_results.iloc[0]
     print(f"Best train-period config: lookback={int(best['lookback'])}, "
           f"entry_z={best['entry_z']}, exit_z={best['exit_z']}, "
