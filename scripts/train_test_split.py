@@ -36,6 +36,8 @@ from scripts.tune_thresholds import (
     prepare_data, LOOKBACKS, ENTRY_ZS, EXIT_ZS,
 )
 from src.strategy.signals import generate_zscore_signal
+from src.strategy.signals import compute_mispricing_series
+from src.models.storage_regression import fit_convenience_yield_vs_storage
 from src.backtest.engine import backtest_calendar_spread, performance_summary
 
 TRAIN_FRACTION = 0.7
@@ -77,6 +79,11 @@ def main():
     split_idx = int(len(merged) * TRAIN_FRACTION)
     train = merged.iloc[:split_idx].reset_index(drop=True)
     test = merged.iloc[split_idx:].reset_index(drop=True)
+    # prepare_data's full-sample fit is suitable for in-sample exploration,
+    # but validation must recompute both residual series from training only.
+    train_fit = fit_convenience_yield_vs_storage(train)
+    train = compute_mispricing_series(train, train_fit)
+    test = compute_mispricing_series(test, train_fit)
     print(f"Train period: {train['date'].min().date()} to {train['date'].max().date()} ({len(train)} rows)")
     print(f"Test period:  {test['date'].min().date()} to {test['date'].max().date()} ({len(test)} rows)")
 
