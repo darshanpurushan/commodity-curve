@@ -47,6 +47,14 @@ def backtest_calendar_spread(
     df["spread"] = df[near_price_col] - df["far_price"]
     df["spread_return"] = df["spread"].diff() / df["far_price"].shift(1)
 
+    # Missing positions must not become flat exposure through fillna below.
+    try:
+        valid_positions = np.isfinite(df["position"].to_numpy()).all()
+    except (TypeError, ValueError):
+        valid_positions = False
+    if not valid_positions:
+        raise ValueError("Backtest requires finite numeric positions")
+
     # Position lagged by one period: today's signal determines tomorrow's exposure
     df["position_lagged"] = df["position"].shift(1).fillna(0)
 
