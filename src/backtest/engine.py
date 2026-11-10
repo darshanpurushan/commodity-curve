@@ -52,8 +52,10 @@ def backtest_calendar_spread(
 
     df["gross_pnl"] = df["position_lagged"] * df["spread_return"]
 
-    trade_flag = df["position_lagged"].diff().fillna(df["position_lagged"]).abs() > 0
-    df["transaction_cost"] = np.where(trade_flag, transaction_cost_bps / 1e4, 0.0)
+    # Charge per unit of notional traded: a +1 to -1 reversal trades two
+    # units, whereas entering or exiting a unit position trades one.
+    turnover = df["position_lagged"].diff().fillna(df["position_lagged"]).abs()
+    df["transaction_cost"] = turnover * transaction_cost_bps / 1e4
 
     df["net_pnl"] = df["gross_pnl"] - df["transaction_cost"]
     df["cumulative_pnl"] = df["net_pnl"].cumsum()
@@ -62,8 +64,7 @@ def backtest_calendar_spread(
     return df
 
 
-def daily_performance_summary(backtest_df: pd.DataFrame) -> dict:
-    """Daily fixed-pair workflow metrics, with 252 observations per year."""
+def daily_performance_summary(backtest_df):
     return performance_summary(backtest_df, periods_per_year=252)
 
 
@@ -77,7 +78,7 @@ def performance_summary(backtest_df: pd.DataFrame, periods_per_year: int = 52) -
     sharpe = ann_return / ann_vol if ann_vol > 0 else np.nan
 
     cum = (1 + returns).cumprod()
-    running_max = cum.cummax()
+    running_max = cum.cummax().clip(lower=1.0)
     drawdown = (cum - running_max) / running_max
     max_dd = drawdown.min()
 

@@ -78,10 +78,15 @@ def load_storage_data_cached(start: str, end: str, cache_path: str = "data/crude
     """
     if os.path.exists(cache_path):
         df = pd.read_csv(cache_path, parse_dates=["date"])
-        return df
+        # Cache files can contain a broader study window. Never return
+        # observations outside the caller's requested (inclusive) dates.
+        within_window = df["date"].between(pd.Timestamp(start), pd.Timestamp(end))
+        return df.loc[within_window].sort_values("date").reset_index(drop=True)
 
     client = EIAClient()
     df = client.get_crude_storage(start, end)
-    os.makedirs(os.path.dirname(cache_path), exist_ok=True)
+    parent = os.path.dirname(cache_path)
+    if parent:
+        os.makedirs(parent, exist_ok=True)
     df.to_csv(cache_path, index=False)
     return df

@@ -23,6 +23,7 @@ import sys
 import os
 import datetime as dt
 import itertools
+import numpy as np
 import pandas as pd
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
@@ -44,6 +45,16 @@ FAR_MONTHS_AHEAD = 6
 LOOKBACKS = [13, 26, 39, 52]        # weeks-equivalent in trading days-ish; adjust as you like
 ENTRY_ZS = [0.5, 0.75, 1.0, 1.25, 1.5]
 EXIT_ZS = [0.1, 0.25, 0.5]
+
+
+def rank_grid_results(results):
+    """Return a stable table of candidates with a defined Sharpe ratio."""
+    columns = ["lookback", "entry_z", "exit_z", "sharpe_ratio",
+               "annualized_return", "max_drawdown", "n_trades"]
+    frame = pd.DataFrame(results, columns=columns)
+    frame["sharpe_ratio"] = pd.to_numeric(frame["sharpe_ratio"], errors="coerce")
+    return frame.loc[np.isfinite(frame["sharpe_ratio"])].sort_values(
+        "sharpe_ratio", ascending=False)
 
 
 def prepare_data():
@@ -100,7 +111,10 @@ def main():
             "n_trades": summary["n_trades"],
         })
 
-    results_df = pd.DataFrame(results).sort_values("sharpe_ratio", ascending=False)
+    results_df = rank_grid_results(results)
+    if results_df.empty:
+        print("No eligible configurations with a defined Sharpe ratio; no winner selected.")
+        return
     os.makedirs("results", exist_ok=True)
     results_df.to_csv("results/threshold_grid_search.csv", index=False)
 

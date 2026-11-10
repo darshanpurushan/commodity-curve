@@ -33,9 +33,11 @@ import pandas as pd
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from scripts.tune_thresholds import (
-    prepare_data, LOOKBACKS, ENTRY_ZS, EXIT_ZS,
+    prepare_data, LOOKBACKS, ENTRY_ZS, EXIT_ZS, rank_grid_results,
 )
 from src.strategy.signals import generate_zscore_signal
+from src.strategy.signals import compute_mispricing_series
+from src.models.storage_regression import fit_convenience_yield_vs_storage
 from src.backtest.engine import backtest_calendar_spread, daily_performance_summary as performance_summary
 
 TRAIN_FRACTION = 0.7
@@ -59,7 +61,7 @@ def run_grid(data: pd.DataFrame) -> pd.DataFrame:
             "max_drawdown": summary["max_drawdown"],
             "n_trades": summary["n_trades"],
         })
-    return pd.DataFrame(results).sort_values("sharpe_ratio", ascending=False)
+    return rank_grid_results(results)
 
 
 def run_single_config(data: pd.DataFrame, lookback: int, entry_z: float, exit_z: float) -> dict:
@@ -77,11 +79,19 @@ def main():
     split_idx = int(len(merged) * TRAIN_FRACTION)
     train = merged.iloc[:split_idx].reset_index(drop=True)
     test = merged.iloc[split_idx:].reset_index(drop=True)
+    # prepare_data's full-sample fit is suitable for in-sample exploration,
+    # but validation must recompute both residual series from training only.
+    train_fit = fit_convenience_yield_vs_storage(train)
+    train = compute_mispricing_series(train, train_fit)
+    test = compute_mispricing_series(test, train_fit)
     print(f"Train period: {train['date'].min().date()} to {train['date'].max().date()} ({len(train)} rows)")
     print(f"Test period:  {test['date'].min().date()} to {test['date'].max().date()} ({len(test)} rows)")
 
     print("\nRunning grid search on TRAIN period only...")
     train_results = run_grid(train)
+    if train_results.empty:
+        print("No eligible training configurations; test evaluation skipped.")
+        return
     best = train_results.iloc[0]
     print(f"Best train-period config: lookback={int(best['lookback'])}, "
           f"entry_z={best['entry_z']}, exit_z={best['exit_z']}, "

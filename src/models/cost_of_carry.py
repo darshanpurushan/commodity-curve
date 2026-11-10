@@ -50,6 +50,15 @@ def implied_convenience_yield(
     Back out the annualized convenience yield implied by a single futures
     price relative to spot.
     """
+    for name, value in {
+        "spot": spot, "futures_price": futures_price,
+        "time_to_expiry_years": time_to_expiry_years,
+        "risk_free_rate": risk_free_rate, "storage_cost_rate": storage_cost_rate,
+    }.items():
+        if not np.isfinite(value):
+            raise ValueError(f"{name} must be finite")
+    if spot <= 0 or futures_price <= 0:
+        raise ValueError("spot and futures_price must be positive for the log carry model")
     if time_to_expiry_years <= 0:
         raise ValueError("time_to_expiry_years must be positive")
     log_ratio = np.log(futures_price / spot)
