@@ -38,7 +38,7 @@ from scripts.tune_thresholds import (
 from src.strategy.signals import generate_zscore_signal
 from src.strategy.signals import compute_mispricing_series
 from src.models.storage_regression import fit_convenience_yield_vs_storage
-from src.backtest.engine import backtest_calendar_spread, performance_summary
+from src.backtest.engine import backtest_calendar_spread, daily_performance_summary as performance_summary
 
 TRAIN_FRACTION = 0.7
 
@@ -90,7 +90,7 @@ def main():
     print("\nRunning grid search on TRAIN period only...")
     train_results = run_grid(train)
     if train_results.empty:
-        print("No eligible training configurations with a defined Sharpe ratio; test evaluation skipped.")
+        print("No eligible training configurations; test evaluation skipped.")
         return
     best = train_results.iloc[0]
     print(f"Best train-period config: lookback={int(best['lookback'])}, "

@@ -36,6 +36,14 @@ def backtest_calendar_spread(
             "of the calendar spread). See scripts/run_pipeline.py."
         )
 
+    try:
+        finite = np.isfinite(df[[near_price_col, "far_price"]].to_numpy()).all()
+    except (TypeError, ValueError):
+        finite = False
+    if not finite:
+        raise ValueError("Backtest requires finite quotes for both spread legs")
+    if (df["far_price"] <= 0).any():
+        raise ValueError("Notional-return model requires positive far prices")
     df["spread"] = df[near_price_col] - df["far_price"]
     df["spread_return"] = df["spread"].diff() / df["far_price"].shift(1)
 
@@ -56,6 +64,10 @@ def backtest_calendar_spread(
     return df
 
 
+def daily_performance_summary(backtest_df):
+    return performance_summary(backtest_df, periods_per_year=252)
+
+
 def performance_summary(backtest_df: pd.DataFrame, periods_per_year: int = 52) -> dict:
     returns = backtest_df["net_pnl"].dropna()
     if len(returns) == 0 or returns.std() == 0:
@@ -66,8 +78,6 @@ def performance_summary(backtest_df: pd.DataFrame, periods_per_year: int = 52) -
     sharpe = ann_return / ann_vol if ann_vol > 0 else np.nan
 
     cum = (1 + returns).cumprod()
-    # Initial capital is a high-water mark before the first return. Without
-    # this baseline, an early loss is omitted from the reported drawdown.
     running_max = cum.cummax().clip(lower=1.0)
     drawdown = (cum - running_max) / running_max
     max_dd = drawdown.min()

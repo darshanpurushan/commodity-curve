@@ -33,7 +33,7 @@ from src.data.futures_data import fetch_fixed_pair_history
 from src.models.cost_of_carry import implied_convenience_yield
 from src.models.storage_regression import fit_convenience_yield_vs_storage
 from src.strategy.signals import generate_zscore_signal
-from src.backtest.engine import backtest_calendar_spread, performance_summary
+from src.backtest.engine import backtest_calendar_spread, daily_performance_summary as performance_summary
 
 START_DATE = (dt.date.today() - dt.timedelta(days=450)).isoformat()
 END_DATE = dt.date.today().isoformat()

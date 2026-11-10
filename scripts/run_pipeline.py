@@ -28,7 +28,7 @@ from src.models.storage_regression import (
     fit_convenience_yield_vs_storage,
 )
 from src.strategy.signals import generate_zscore_signal
-from src.backtest.engine import backtest_calendar_spread, performance_summary
+from src.backtest.engine import backtest_calendar_spread, daily_performance_summary as performance_summary
 
 # ---- Config ----
 # NOTE: Yahoo Finance's free data for individual WTI contract-month tickers
