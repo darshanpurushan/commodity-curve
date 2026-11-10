@@ -54,6 +54,11 @@ def backtest_calendar_spread(
     return df
 
 
+def daily_performance_summary(backtest_df: pd.DataFrame) -> dict:
+    """Daily fixed-pair workflow metrics, with 252 observations per year."""
+    return performance_summary(backtest_df, periods_per_year=252)
+
+
 def performance_summary(backtest_df: pd.DataFrame, periods_per_year: int = 52) -> dict:
     returns = backtest_df["net_pnl"].dropna()
     if len(returns) == 0 or returns.std() == 0:

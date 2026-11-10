@@ -36,7 +36,7 @@ from scripts.tune_thresholds import (
     prepare_data, LOOKBACKS, ENTRY_ZS, EXIT_ZS,
 )
 from src.strategy.signals import generate_zscore_signal
-from src.backtest.engine import backtest_calendar_spread, performance_summary
+from src.backtest.engine import backtest_calendar_spread, daily_performance_summary as performance_summary
 
 TRAIN_FRACTION = 0.7
 
