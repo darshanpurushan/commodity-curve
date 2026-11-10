@@ -85,6 +85,8 @@ def load_storage_data_cached(start: str, end: str, cache_path: str = "data/crude
 
     client = EIAClient()
     df = client.get_crude_storage(start, end)
-    os.makedirs(os.path.dirname(cache_path), exist_ok=True)
+    parent = os.path.dirname(cache_path)
+    if parent:
+        os.makedirs(parent, exist_ok=True)
     df.to_csv(cache_path, index=False)
     return df
