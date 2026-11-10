@@ -66,7 +66,9 @@ def performance_summary(backtest_df: pd.DataFrame, periods_per_year: int = 52) -
     sharpe = ann_return / ann_vol if ann_vol > 0 else np.nan
 
     cum = (1 + returns).cumprod()
-    running_max = cum.cummax()
+    # Initial capital is a high-water mark before the first return. Without
+    # this baseline, an early loss is omitted from the reported drawdown.
+    running_max = cum.cummax().clip(lower=1.0)
     drawdown = (cum - running_max) / running_max
     max_dd = drawdown.min()
 
