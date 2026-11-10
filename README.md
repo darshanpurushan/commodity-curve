@@ -135,9 +135,11 @@ this project. The next section outlines concrete ways to close that gap.
 
 **Train/test validation of the tuned thresholds:**
 
+**Evidence limitation:** the historical figures in this paragraph were produced by a script that fitted its storage regression on the full dataset before splitting training and test periods. Held-out convenience yields could therefore influence the training residuals. These figures are retained as historical output, but they should not be used as independent out-of-sample evidence. Rerun the study with a training-only regression, then freeze that model for the test period before drawing conclusions from the comparison. [PR #8](https://github.com/darshanpurushan/commodity-curve/pull/8) proposes that correction and demonstrates the leakage with a future-target perturbation test. No corrected historical numbers are available yet.
+
 Split the data chronologically: first 70% as train (June 2025 to April 2026, 213 rows), last 30% as test (April 2026 to August 2026, 92 rows). Grid search on train only found the best config at lookback=13, entry_z=1.5, exit_z=0.5, giving a train Sharpe of 0.38. Applying that same config unchanged to the test period gave a Sharpe of 0.62, annualized return of 8.6%, max drawdown of -14.5%, over 14 trades.
 
-The test Sharpe held up better than train, which is the opposite of what overfitting usually looks like. Worth noting the test period is small (92 rows, 14 trades), so this isn't proof the strategy is robust across all conditions — just a reasonable sign the tuned thresholds aren't purely an artifact of the exact data they were chosen on.
+The original test Sharpe exceeded the original train Sharpe. Because the regression fit leaked across the split, that comparison does not establish that the thresholds generalize. Even after correcting the split, a 92-row, 14-trade test period would remain too limited to establish robustness across market conditions.
 
 ## Extensions worth pursuing next
 
