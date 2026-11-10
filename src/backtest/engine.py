@@ -44,8 +44,10 @@ def backtest_calendar_spread(
 
     df["gross_pnl"] = df["position_lagged"] * df["spread_return"]
 
-    trade_flag = df["position_lagged"].diff().fillna(df["position_lagged"]).abs() > 0
-    df["transaction_cost"] = np.where(trade_flag, transaction_cost_bps / 1e4, 0.0)
+    # Charge per unit of notional traded: a +1 to -1 reversal trades two
+    # units, whereas entering or exiting a unit position trades one.
+    turnover = df["position_lagged"].diff().fillna(df["position_lagged"]).abs()
+    df["transaction_cost"] = turnover * transaction_cost_bps / 1e4
 
     df["net_pnl"] = df["gross_pnl"] - df["transaction_cost"]
     df["cumulative_pnl"] = df["net_pnl"].cumsum()
