@@ -29,6 +29,8 @@ def backtest_calendar_spread(
     front_month_only=True) and that a matching far-month price series has
     been joined in as 'far_price'. See scripts/run_pipeline.py for the join.
     """
+    if not np.isfinite(transaction_cost_bps) or transaction_cost_bps < 0:
+        raise ValueError("transaction_cost_bps must be finite and nonnegative")
     df = signal_df.copy().sort_values("date").reset_index(drop=True)
     if "far_price" not in df.columns:
         raise ValueError(
