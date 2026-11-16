@@ -32,6 +32,8 @@ def backtest_calendar_spread(
     if not np.isfinite(transaction_cost_bps) or transaction_cost_bps < 0:
         raise ValueError("transaction_cost_bps must be finite and nonnegative")
     df = signal_df.copy().sort_values("date").reset_index(drop=True)
+    if df["date"].isna().any() or df["date"].duplicated().any():
+        raise ValueError("Backtest dates must be present and unique")
     if "far_price" not in df.columns:
         raise ValueError(
             "signal_df must include a 'far_price' column (the offsetting leg "
