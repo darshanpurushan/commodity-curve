@@ -86,7 +86,7 @@ def curve_snapshot_to_carry(
         lambda row: implied_convenience_yield(
             spot=spot,
             futures_price=row["price"],
-            time_to_expiry_years=max(row["time_to_expiry_years"], 1e-6),
+            time_to_expiry_years=row["time_to_expiry_years"],
             risk_free_rate=risk_free_rate,
             storage_cost_rate=storage_cost_rate,
         ),
