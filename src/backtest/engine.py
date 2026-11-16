@@ -82,7 +82,7 @@ def daily_performance_summary(backtest_df):
 
 def performance_summary(backtest_df: pd.DataFrame, periods_per_year: int = 52) -> dict:
     returns = backtest_df["net_pnl"].dropna()
-    if len(returns) == 0 or returns.std() == 0:
+    if len(returns) < 2 or returns.std() == 0:
         return {"error": "insufficient data or zero variance"}
 
     ann_return = returns.mean() * periods_per_year
