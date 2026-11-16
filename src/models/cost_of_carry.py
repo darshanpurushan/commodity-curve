@@ -61,7 +61,7 @@ def implied_convenience_yield(
         raise ValueError("spot and futures_price must be positive for the log carry model")
     if time_to_expiry_years <= 0:
         raise ValueError("time_to_expiry_years must be positive")
-    log_ratio = np.log(futures_price / spot)
+    log_ratio = np.log(futures_price) - np.log(spot)
     return risk_free_rate + storage_cost_rate - log_ratio / time_to_expiry_years
 
 
