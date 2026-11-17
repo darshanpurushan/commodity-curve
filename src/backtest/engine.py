@@ -29,7 +29,11 @@ def backtest_calendar_spread(
     front_month_only=True) and that a matching far-month price series has
     been joined in as 'far_price'. See scripts/run_pipeline.py for the join.
     """
+    if not np.isfinite(transaction_cost_bps) or transaction_cost_bps < 0:
+        raise ValueError("transaction_cost_bps must be finite and nonnegative")
     df = signal_df.copy().sort_values("date").reset_index(drop=True)
+    if df["date"].isna().any() or df["date"].duplicated().any():
+        raise ValueError("Backtest dates must be present and unique")
     if "far_price" not in df.columns:
         raise ValueError(
             "signal_df must include a 'far_price' column (the offsetting leg "
@@ -78,7 +82,7 @@ def daily_performance_summary(backtest_df):
 
 def performance_summary(backtest_df: pd.DataFrame, periods_per_year: int = 52) -> dict:
     returns = backtest_df["net_pnl"].dropna()
-    if len(returns) == 0 or returns.std() == 0:
+    if len(returns) < 2 or returns.std() == 0:
         return {"error": "insufficient data or zero variance"}
 
     ann_return = returns.mean() * periods_per_year

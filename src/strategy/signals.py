@@ -53,6 +53,10 @@ def generate_zscore_signal(
         -1  = short calendar spread (mispricing very positive -> expect reversion down)
          0  = flat (inside the exit band)
     """
+    if isinstance(lookback, bool) or not isinstance(lookback, int) or lookback < 2:
+        raise ValueError("lookback must be an integer of at least 2")
+    if not np.isfinite(entry_z) or not np.isfinite(exit_z) or not 0 < exit_z < entry_z:
+        raise ValueError("thresholds must satisfy 0 < exit_z < entry_z and be finite")
     out = df.copy().sort_values("date").reset_index(drop=True)
     roll_mean = out["mispricing"].rolling(lookback, min_periods=lookback // 2).mean()
     roll_std = out["mispricing"].rolling(lookback, min_periods=lookback // 2).std()
