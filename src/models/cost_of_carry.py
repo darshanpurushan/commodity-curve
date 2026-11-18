@@ -102,7 +102,7 @@ def curve_snapshot_to_carry(
         dt_years = far["time_to_expiry_years"] - near["time_to_expiry_years"]
         if dt_years > 0:
             out.loc[i, "annualized_roll_yield"] = (
-                np.log(near["price"] / far["price"]) / dt_years
+                (np.log(near["price"]) - np.log(far["price"])) / dt_years
             )
 
     out["curve_state"] = np.where(
